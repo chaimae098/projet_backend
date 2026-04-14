@@ -38,7 +38,7 @@ class ProfilController extends Controller
     }
     public function addCompetence(Request $request){
         $data =$request->validate([
-            'competence_id'=>'requiered|exists:competences,id',
+            'competence_id'=>'required|exists:competences,id',
             'niveau'=>'required|in:débutant, intermédiaire,expert',
         ]);
         $profil =$request->user()->profil();

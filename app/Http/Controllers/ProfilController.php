@@ -41,12 +41,20 @@ class ProfilController extends Controller
             'competence_id'=>'required|exists:competences,id',
             'niveau'=>'required|in:débutant, intermédiaire,expert',
         ]);
-        $profil =$request->user()->profil();
-        $profil->competences()->syncWithoutDetaching([[$data['competence_id']=>['niveau'=>$data['niveau']]]]);
+        $profil =$request->user()->profil;
+        if (!$profil) {
+            return response()->json(['message' => 'Profil introuvable'], 404);
+        }
+        $profil->competences()->syncWithoutDetaching([
+            $data['competence_id'] => ['niveau' => $data['niveau']],
+        ]);
         return response()->json(['message'=> 'Compétences ajoutées']);
     }
     public function removeCompetence(Request $request,$competenceId){
-        $profil =$request->user()->profil();
+        $profil =$request->user()->profil;
+        if (!$profil) {
+            return response()->json(['message' => 'Profil introuvable'], 404);
+        }
         $profil->competences()->detach($competenceId);
         return response()->json(['message'=>'Compétence retirée']);
     }

@@ -19,16 +19,22 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         $this->call([UserSeeder::class, CompetenceSeeder::class]);
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        User::updateOrCreate(
+            ['email' => 'test@example.com'],
+            [
+                'name' => 'Test User',
+                'password' => bcrypt('password'),
+                'role' => 'candidat',
+            ]
+        );
 
-        ]);
-        User::factory()->create([
-            'name'     => 'Admin Test',
-            'email'    => 'admin@test.com',
-            'password' => bcrypt('password123'),
-            'role'     => 'admin',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'admin@test.com'],
+            [
+                'name' => 'Admin Test',
+                'password' => bcrypt('password123'),
+                'role' => 'admin',
+            ]
+        );
     }
 }

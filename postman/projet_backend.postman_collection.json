@@ -1,0 +1,650 @@
+{
+  "info": {
+    "_postman_id": "7f6d8f7f-2e5c-4f36-8e18-1f0f5c2d9f51",
+    "name": "projet_backend API",
+    "description": "Collection Postman pour tester l'API Laravel du projet backend.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test.postman@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"candidat\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "register"
+              ]
+            },
+            "description": "Créer un utilisateur et récupérer un token JWT.",
+            "response": []
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data.token) {",
+                  "  pm.environment.set('token', data.token);",
+                  "  pm.collectionVariables.set('token', data.token);",
+                  "}",
+                  "pm.test('Token returned', function () {",
+                  "  pm.expect(data).to.have.property('token');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login"
+              ]
+            },
+            "description": "Connexion avec un utilisateur seedé ou créé manuellement.",
+            "response": []
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me"
+              ]
+            },
+            "description": "Retourne l'utilisateur courant.",
+            "response": []
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "logout"
+              ]
+            },
+            "description": "Invalide le token courant.",
+            "response": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Offres publiques",
+      "item": [
+        {
+          "name": "Lister les offres",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/offres?localisation=Paris&type=CDI",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "offres"
+              ],
+              "query": [
+                {
+                  "key": "localisation",
+                  "value": "Paris"
+                },
+                {
+                  "key": "type",
+                  "value": "CDI"
+                }
+              ]
+            },
+            "description": "Liste paginée des offres actives avec filtres optionnels.",
+            "response": []
+          }
+        },
+        {
+          "name": "Détails d'une offre",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/offres/{{offre_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "offres",
+                "{{offre_id}}"
+              ]
+            },
+            "description": "Retourne une offre par son identifiant.",
+            "response": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profil",
+      "item": [
+        {
+          "name": "Créer mon profil",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titre\": \"Développeur Backend\",\n  \"bio\": \"Profil de test\",\n  \"localisation\": \"Casablanca\",\n  \"disponible\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/profil",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "profil"
+              ]
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "const data = pm.response.json();",
+                    "if (data.id) {",
+                    "  pm.environment.set('profil_id', data.id);",
+                    "  pm.collectionVariables.set('profil_id', data.id);",
+                    "}",
+                    "pm.test('Profil created', function () {",
+                    "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                    "});"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ],
+            "description": "Crée un profil lié à l'utilisateur connecté.",
+            "response": []
+          }
+        },
+        {
+          "name": "Voir mon profil",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/profil",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "profil"
+              ]
+            },
+            "description": "Retourne le profil courant avec ses compétences.",
+            "response": []
+          }
+        },
+        {
+          "name": "Mettre à jour mon profil",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titre\": \"Développeur Full Stack\",\n  \"bio\": \"Profil mis à jour\",\n  \"localisation\": \"Rabat\",\n  \"disponible\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/profil",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "profil"
+              ]
+            },
+            "description": "Met à jour le profil courant.",
+            "response": []
+          }
+        },
+        {
+          "name": "Ajouter une compétence au profil",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"competence_id\": {{competence_id}},\n  \"niveau\": \"expert\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/profil/competences",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "profil",
+                "competences"
+              ]
+            },
+            "description": "Associe une compétence existante au profil courant.",
+            "response": []
+          }
+        },
+        {
+          "name": "Retirer une compétence du profil",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/profil/competences/{{competence_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "profil",
+                "competences",
+                "{{competence_id}}"
+              ]
+            },
+            "description": "Désassocie une compétence du profil courant.",
+            "response": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Offres protégées",
+      "item": [
+        {
+          "name": "Créer une offre",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titre\": \"Développeur Laravel\",\n  \"description\": \"Offre de test créée via Postman\",\n  \"localisation\": \"Paris\",\n  \"type\": \"CDI\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/offres",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "offres"
+              ]
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "const data = pm.response.json();",
+                    "if (data.id) {",
+                    "  pm.environment.set('offre_id', data.id);",
+                    "  pm.collectionVariables.set('offre_id', data.id);",
+                    "}",
+                    "pm.test('Offer created', function () {",
+                    "  pm.expect(pm.response.code).to.equal(201);",
+                    "});"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ],
+            "description": "Crée une offre pour l'utilisateur connecté.",
+            "response": []
+          }
+        },
+        {
+          "name": "Mettre à jour une offre",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titre\": \"Développeur Laravel Senior\",\n  \"description\": \"Mise à jour depuis Postman\",\n  \"localisation\": \"Lyon\",\n  \"type\": \"CDD\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/offres/{{offre_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "offres",
+                "{{offre_id}}"
+              ]
+            },
+            "description": "Met à jour une offre appartenant à l'utilisateur connecté.",
+            "response": []
+          }
+        },
+        {
+          "name": "Supprimer une offre",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/offres/{{offre_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "offres",
+                "{{offre_id}}"
+              ]
+            },
+            "description": "Supprime une offre appartenant à l'utilisateur connecté.",
+            "response": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Candidatures",
+      "item": [
+        {
+          "name": "Postuler à une offre",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Je souhaite rejoindre cette équipe.\",\n  \"profil_id\": {{profil_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/offres/{{offre_id}}/candidater",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "offres",
+                "{{offre_id}}",
+                "candidater"
+              ]
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "const data = pm.response.json();",
+                    "if (data.id) {",
+                    "  pm.environment.set('candidature_id', data.id);",
+                    "  pm.collectionVariables.set('candidature_id', data.id);",
+                    "}",
+                    "pm.test('Application created', function () {",
+                    "  pm.expect(pm.response.code).to.equal(201);",
+                    "});"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ],
+            "description": "Dépose une candidature sur une offre.",
+            "response": []
+          }
+        },
+        {
+          "name": "Lister les candidatures d'une offre",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/offres/{{offre_id}}/candidatures",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "offres",
+                "{{offre_id}}",
+                "candidatures"
+              ]
+            },
+            "description": "Liste les candidatures liées à une offre.",
+            "response": []
+          }
+        },
+        {
+          "name": "Changer le statut d'une candidature",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statut\": \"acceptee\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/candidatures/{{candidature_id}}/statut",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "candidatures",
+                "{{candidature_id}}",
+                "statut"
+              ]
+            },
+            "description": "Met à jour le statut d'une candidature.",
+            "response": []
+          }
+        },
+        {
+          "name": "Mes candidatures",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/mes-candidatures",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "mes-candidatures"
+              ]
+            },
+            "description": "Retourne les candidatures de l'utilisateur connecté.",
+            "response": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Lister les utilisateurs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/users",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "admin",
+                "users"
+              ]
+            },
+            "description": "Route admin qui nécessite un token valide et un rôle admin.",
+            "response": []
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "offre_id",
+      "value": "1"
+    },
+    {
+      "key": "profil_id",
+      "value": "1"
+    },
+    {
+      "key": "candidature_id",
+      "value": "1"
+    },
+    {
+      "key": "competence_id",
+      "value": "1"
+    }
+  ]
+}

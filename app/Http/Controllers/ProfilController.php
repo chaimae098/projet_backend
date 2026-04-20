@@ -50,12 +50,21 @@ class ProfilController extends Controller
         ]);
         return response()->json(['message'=> 'Compétences ajoutées']);
     }
-    public function removeCompetence(Request $request,$competenceId){
-        $profil =$request->user()->profil;
+    public function removeCompetence(Request $request, $competence)
+    {
+        $profil = $request->user()->profil;
+
         if (!$profil) {
-            return response()->json(['message' => 'Profil introuvable'], 404);
+            return response()->json(['error' => 'Profil introuvable.'], 404);
         }
-        $profil->competences()->detach($competenceId);
-        return response()->json(['message'=>'Compétence retirée']);
-    }
-}
+
+        $exists = $profil->competences()->where('competence_id', $competence)->exists();
+
+        if (!$exists) {
+            return response()->json(['error' => 'Cette compétence ne figure pas sur votre profil.'], 404);
+        }
+
+        $profil->competences()->detach($competence);
+
+        return response()->json(['message' => 'Compétence retirée.']);
+    }}

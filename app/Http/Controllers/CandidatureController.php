@@ -10,22 +10,29 @@ use App\Events\StatutCandidatureMis;
 
 class CandidatureController extends Controller
 {
-    // POST /api/offres/{offre}/candidater
     public function postuler(Request $request, Offre $offre)
     {
+        if (!$offre->actif) {
+            return response()->json(['error' => 'Cette offre n\'est plus active.'], 422);
+        }
         $validated = $request->validate([
             'message' => 'required|string',
-            'profil_id' => 'required|exists:profils,id',
         ]);
 
         $profil = $request->user()->profil;
-        if (!$profil || (int) $profil->id !== (int) $validated['profil_id']) {
-            return response()->json(['error' => 'Profil invalide pour cet utilisateur'], 403);
+        if (!$profil) {
+            return response()->json(['error' => 'Vous devez créer un profil avant de postuler.'], 422);
         }
+        $exists = Candidature::where('offre_id', $offre->id)
+            ->where('profil_id', $profil->id)
+            ->exists();
 
+        if ($exists) {
+            return response()->json(['error' => 'Vous avez déjà postulé à cette offre.'], 422);
+        }
         $candidature = Candidature::create([
             'offre_id' => $offre->id,
-            'profil_id' => $validated['profil_id'],
+            'profil_id' => $profil->id,
             'message' => $validated['message'],
             'statut' => 'en_attente'
         ]);
@@ -34,7 +41,6 @@ class CandidatureController extends Controller
         return response()->json($candidature, 201);
     }
 
-    // PATCH /api/candidatures/{candidature}/statut
     public function changerStatut(Request $request, Candidature $candidature)
     {
         $request->validate(['statut' => 'required|in:en_attente,acceptee,refusee']);

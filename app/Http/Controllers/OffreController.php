@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class OffreController extends Controller
 {
-    // GET /api/offres 
+    // GET /api/offres
     public function index(Request $request)
     {
         $query = Offre::query()->where('actif', true);
@@ -26,7 +26,7 @@ class OffreController extends Controller
         return response()->json($offres);
     }
 
-    // POST /api/offres 
+    // POST /api/offres
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -55,21 +55,26 @@ class OffreController extends Controller
         return response()->json($offre);
     }
 
-    // PUT /api/offres/{offre}
     public function update(Request $request, Offre $offre)
     {
         if (auth()->id() !== $offre->user_id) {
             return response()->json(['error' => 'Action interdite : vous n\'êtes pas le propriétaire.'], 403);
         }
+        $validated = $request->validate([
+            'titre'       => 'sometimes|string|max:255',
+            'description' => 'sometimes|string',
+            'localisation'=> 'sometimes|string|max:255',
+            'type'        => 'sometimes|in:CDI,CDD,stage',
+            'actif'       => 'sometimes|boolean',
+        ]);
 
-        $offre->update($request->all());
+        $offre->update($validated);
+
         return response()->json($offre);
     }
 
-    // DELETE /api/offres/{offre} 
     public function destroy(Offre $offre)
     {
-        // Règle d'ownership
         if (auth()->id() !== $offre->user_id) {
             return response()->json(['error' => 'Action interdite.'], 403);
         }

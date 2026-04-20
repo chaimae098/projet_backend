@@ -12,10 +12,7 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Register any application services.
      */
-    protected $listen = [
-        CandidatureDeposee::class => [LogCandidatureDeposee::class],
-        StatutCandidatureMis::class => [StatutCandidatureMis::class],
-    ];
+
     public function register(): void
     {
         //

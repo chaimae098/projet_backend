@@ -11,7 +11,7 @@ class AuthController extends Controller
         'name' => 'required|string',
         'email' => 'required|email|unique:users',
         'password' => 'required|min:6',
-        'role' => 'in:candidat,recruteur'
+        'role' => 'required|in:candidat,recruteur'
     ]);
     $data['password'] = bcrypt($data['password']);
     $user = User::create($data);
@@ -27,7 +27,7 @@ public function login(Request $request) {
     if (!$token = auth()->attempt($credentials)) {
         return response()->json(['error' => 'Unauthorized'], 401);
     }
-    return response()->json(['token' => $token]);
+    return response()->json(['token' => $token, 'user' => auth()->user()]);
 }
 
 public function logout() {

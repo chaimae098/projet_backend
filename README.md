@@ -1,58 +1,117 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Mini-LinkedIn API 
+Une API de plateforme de recrutement permettant de mettre en relation des candidats et des recruteurs. Ce projet a été développé avec Laravel 11 dans le cadre du module Technologies Backend.
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## Fonctionnalités
+* Authentification Robuste : Gestion des utilisateurs avec JWT (JSON Web Tokens).
+* Système de Rôles : Accès différencié pour Candidat, Recruteur et Admin.
+* Gestion de Profils : Profils enrichis avec compétences et niveaux (Débutant à Expert).
+* Job Board : Création, modification et filtrage avancé des offres d'emploi.
+* Workflow de Candidature : Postulation et suivi du statut (en attente, acceptée, refusée).
+* Architecture Événementielle : Utilisation d'Events & Listeners pour le logging des activités critiques.
+* Administration : Modération des utilisateurs et des offres.
 
-## About Laravel
+##  Stack Technique
+- Framework : Laravel 11
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Authentification : JWT-Auth
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Base de données : MySQL 
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Outils : Eloquent ORM, Migrations, Factories & Seeders
 
-## Learning Laravel
+## Installation
+Cloner le dépôt
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```Bash
+git clone https://github.com/votre-username/mini-linkedin-api.git
+cd mini-linkedin-api
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Installer les dépendances
 
-## Contributing
+```Bash
+composer install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Configuration de l'environnement
 
-## Code of Conduct
+```Bash
+cp .env.example .env
+# Configurez votre base de données dans le fichier .env
+php artisan key:generate
+php artisan jwt:secret
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Migrations et Seeders (Crée 2 admins, 5 recruteurs, 10 candidats)
 
-## Security Vulnerabilities
+```Bash
+php artisan migrate --seed
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Lancer le serveur
 
-## License
+```Bash
+php artisan serve
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## API Endpoints
+
+###  Authentification
+| Méthode | Endpoint | Accès | Description |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/register` | Public | Créer un compte (Candidat/Recruteur) |
+| `POST` | `/api/login` | Public | Connexion et obtention du Token JWT |
+
+###  Gestion du Profil (Candidats)
+* `POST /api/profil` : Créer son profil (une seule fois).
+* `GET /api/profil` : Consulter son propre profil avec compétences.
+* `PUT /api/profil` : Modifier ses informations de profil.
+* `POST /api/profil/competences` : Ajouter une compétence avec son niveau.
+* `DELETE /api/profil/competences/{id}` : Retirer une compétence du profil.
+
+###  Offres d'Emploi
+* `GET /api/offres` : Liste des offres actives (Supporte pagination, tri, et filtres `localisation`/`type`).
+* `GET /api/offres/{id}` : Voir les détails d'une offre spécifique.
+* `POST /api/offres` : Créer une offre (**Recruteur uniquement**).
+* `PUT /api/offres/{id}` : Modifier son offre (**Propriétaire uniquement**).
+* `DELETE /api/offres/{id}` : Supprimer son offre (**Propriétaire uniquement**).
+
+###  Candidatures
+* `POST /api/offres/{id}/candidater` : Postuler à une offre (**Candidat uniquement**).
+* `GET /api/mes-candidatures` : Liste des candidatures envoyées par le candidat.
+* `GET /api/offres/{id}/candidatures` : Liste des candidatures reçues pour une offre (**Recruteur propriétaire**).
+* `PATCH /api/candidatures/{id}/statut` : Modifier le statut (en_attente, acceptee, refusee).
+
+###  Administration
+| Méthode | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/admin/users` | Liste complète de tous les utilisateurs |
+| `DELETE` | `/api/admin/users/{id}` | Supprimer définitivement un compte utilisateur |
+| `PATCH` | `/api/admin/offres/{id}` | Activer ou désactiver une offre d'emploi |
+
+##  Système d'Événements & Listeners
+
+Le projet utilise le système de **découplage par Events & Listeners** de Laravel pour gérer les logs d'activité. Toutes les traces sont enregistrées dans le fichier suivant :  
+`storage/logs/candidatures.log`
+
+### Événements implémentés :
+* **CandidatureDeposee** : Déclenché lorsqu'un candidat postule. Le listener extrait et enregistre :
+    * La date de l'action.
+    * Le nom complet du candidat.
+    * Le titre de l'offre concernée.
+* **StatutCandidatureMis** : Déclenché lors de la modification du statut par un recruteur. Il enregistre :
+    * La date de modification.
+    * L'ancien statut (ex: `en_attente`).
+    * Le nouveau statut (ex: `acceptee`).
+
+---
+
+##  Tests & Postman
+
+Une collection Postman complète est fournie pour tester l'intégralité de l'API. Elle se trouve dans le dossier : `/postman`.
+
+**La collection couvre les scénarios suivants :**
+* **Authentification** : Inscription, connexion et gestion des **Bearer Tokens** (JWT).
+* **Sécurité** : Tests des accès restreints (Erreurs `401 Unauthorized` et `403 Forbidden`).
+* **Validation** : Tests des formulaires et erreurs de données (`422 Unprocessable Entity`).
+* **Cycle de vie** : Flux complet allant de la création d'une offre à la sélection finale d'un candidat.

@@ -4,6 +4,8 @@
 
 **Plateforme de recrutement · Laravel 11 · JWT Auth**
 
+**Documentation API:** [Consulter la documentation complete](./API_DOCUMENTATION.md)
+
 [![Laravel](https://img.shields.io/badge/Laravel-11-FF2D20?style=flat-square&logo=laravel&logoColor=white)](https://laravel.com)
 [![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=flat-square&logo=php&logoColor=white)](https://php.net)
 [![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://mysql.com)

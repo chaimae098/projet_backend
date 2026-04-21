@@ -462,19 +462,7 @@ if (res.token) pm.environment.set("token", res.token);
 
 ---
 
-## Branches Git
 
-| Branche | Fonctionnalité |
-|---------|---------------|
-| `main` | Code stable et final |
-| `feature/auth` | Authentification JWT |
-| `feature/profil` | Profil candidat et compétences |
-| `feature/offres` | CRUD offres d'emploi |
-| `feature/candidatures` | Système de candidatures |
-| `feature/admin` | Routes d'administration |
-| `feature/events` | Events & Listeners |
-
----
 
 <div align="center">
 

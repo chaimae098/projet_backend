@@ -60,7 +60,7 @@ Une API REST complète simulant une plateforme de recrutement de type **Mini-Lin
 
 ## Prérequis
 
-- PHP >= 8.2
+- PHP >= 8.3
 - Composer
 - MySQL >= 8.0
 - Extensions PHP : `openssl`, `pdo`, `mbstring`, `tokenizer`, `xml`, `ctype`, `json`
@@ -71,8 +71,8 @@ Une API REST complète simulant une plateforme de recrutement de type **Mini-Lin
 
 **1. Cloner le dépôt**
 ```bash
-git clone https://github.com/votre-username/mini-linkedin-api.git
-cd mini-linkedin-api
+git clone https://github.com/votre-username/projet_backend.git
+cd projet_backend
 ```
 
 **2. Installer les dépendances**
@@ -157,7 +157,7 @@ mini-linkedin-api/
 │       └── candidatures.log                # ← Généré par les Events & Listeners
 │
 ├── postman/
-│   └── mini-linkedin.postman_collection.json
+│   └── Projet_backend.postman_collection_final.json   # ← Collection de tests Postman
 │
 ├── .env.example
 └── README.md
@@ -228,23 +228,32 @@ Chaque recruteur possède 2 à 3 offres. Chaque candidat a un profil complet ave
 ```json
 POST /api/register
 {
-  "name": "Alice Martin",
-  "email": "alice@test.com",
-  "password": "secret123",
-  "role": "candidat"
+  "name": "recruiter",
+  "email": "recruteur@ensam.casa",
+  "password": "secret",
+  "role": "recruteur"
 }
 ```
 **Réponse 201 :**
 ```json
-{ "token": "eyJ...", "user": { "id": 1, "name": "Alice Martin", "role": "candidat" } }
+{
+  "token": "eyJ...",
+  "user": {
+    "name": "recruteur",
+    "email": "recruteur@ensam.casa",
+    "role": "recruteur",
+    "id": 30
+  }
+}
 ```
 
-**Erreurs possibles :**
-```
-422 → email déjà pris
-422 → role:admin → non autorisé à l'inscription
-401 → identifiants incorrects lors du login
-```
+**Erreurs couvertes par les tests :**
+
+| Test | Scénario | Code attendu |
+|------|----------|-------------|
+| `error_register` | Champs manquants (name, email, password, role) | `422` |
+| `register_admin` | Tentative d'inscription avec `role: admin` | `422` — rôle invalide |
+| `error_login_candidat` | Mot de passe incorrect | `401 Unauthorized` |
 
 ---
 
@@ -260,18 +269,52 @@ POST /api/register
 
 **Niveaux acceptés :** `débutant`, `intermédiaire`, `expert`
 
+**Exemple créer profil :**
+```json
+POST /api/profil
+{
+  "titre": "Developpeur Full Stack",
+  "bio": "passionne par le developpement et la resolution",
+  "localisation": "Casablanca",
+  "disponible": true
+}
+```
+**Réponse 201 :**
+```json
+{
+  "titre": "Developpeur Full Stack",
+  "bio": "passionne par le developpement et la resolution",
+  "localisation": "Casablanca",
+  "disponible": true,
+  "user_id": 29,
+  "id": 4
+}
+```
+
+**Exemple modifier profil :**
+```json
+PUT /api/profil
+{
+  "titre": "leader",
+  "localisation": "rabat",
+  "disponible": false
+}
+```
+
 **Exemple ajouter compétence :**
 ```json
 POST /api/profil/competences
-{ "competence_id": 3, "niveau": "expert" }
+{ "competence_id": 1, "niveau": "expert" }
 ```
+**Réponse 200 :** `{ "message": "Compétences ajoutées" }`
 
-**Erreurs possibles :**
-```
-403 → token recruteur utilisé sur une route candidat
-404 → compétence non présente sur le profil (DELETE)
-422 → niveau invalide
-```
+**Erreurs couvertes par les tests :**
+
+| Test | Scénario | Code attendu |
+|------|----------|-------------|
+| `error_profil_candidat` | Token recruteur utilisé sur route candidat | `403` — "Accès refusé. Rôle requis : candidat" |
+| `error_profil_competences` | Niveau invalide (`"not mentionned"`) | `422` — "The selected niveau is invalid." |
+| `error_competences` | Suppression d'une compétence inexistante (id: 99) | `404` — "Cette compétence ne figure pas sur votre profil." |
 
 ---
 
@@ -279,7 +322,7 @@ POST /api/profil/competences
 
 | Méthode | Endpoint | Auth | Description |
 |---------|----------|------|-------------|
-| `GET` | `/api/offres` | Public | Liste paginée des offres actives |
+| `GET` | `/api/offres` | Public | Liste paginée des offres actives (10/page) |
 | `GET` | `/api/offres/{id}` | Public | Détail d'une offre |
 | `POST` | `/api/offres` | Recruteur | Créer une offre |
 | `PUT` | `/api/offres/{id}` | Recruteur (owner) | Modifier son offre |
@@ -296,19 +339,39 @@ GET /api/offres?localisation=Casablanca&type=CDI&page=2
 ```json
 POST /api/offres
 {
-  "titre": "Développeur Backend Laravel",
-  "description": "Rejoignez notre équipe.",
-  "localisation": "Casablanca",
+  "titre": "dev",
+  "description": "mission de 6 mois ..",
+  "localisation": "casablanca",
   "type": "CDI"
 }
 ```
+**Réponse 201 :**
+```json
+{
+  "titre": "dev",
+  "description": "mission de 6 mois ..",
+  "localisation": "casablanca",
+  "type": "CDI",
+  "user_id": 30,
+  "actif": true,
+  "id": 5
+}
+```
 
-**Erreurs possibles :**
+**Exemple modifier offre :**
+```json
+PUT /api/offres/5
+{ "titre": "dev", "type": "CDD" }
 ```
-403 → token candidat sur route recruteur
-403 → modification d'une offre appartenant à un autre recruteur
-422 → type invalide (hors CDI/CDD/stage)
-```
+
+**Erreurs couvertes par les tests :**
+
+| Test | Scénario | Code attendu |
+|------|----------|-------------|
+| `error_offres` | Token candidat utilisé pour créer une offre | `403` — "Accès refusé. Rôle requis : recruteur" |
+| `invalid_offre` | Type invalide (`"nothing"`) ou token expiré | `401 Unauthenticated` |
+| `error_offresput` | Modification d'une offre appartenant à un autre recruteur | `403` — "Action interdite : vous n'êtes pas le propriétaire." |
+| `error_delete_offres` | Suppression d'une offre appartenant à un autre recruteur | `403` — "Action interdite." |
 
 ---
 
@@ -317,28 +380,40 @@ POST /api/offres
 | Méthode | Endpoint | Auth | Description |
 |---------|----------|------|-------------|
 | `POST` | `/api/offres/{id}/candidater` | Candidat | Postuler à une offre |
-| `GET` | `/api/mes-candidatures` | Candidat | Ses propres candidatures |
-| `GET` | `/api/offres/{id}/candidatures` | Recruteur (owner) | Candidatures reçues |
-| `PATCH` | `/api/candidatures/{id}/statut` | Recruteur (owner) | Changer le statut |
+| `GET` | `/api/mes-candidatures` | Candidat | Ses propres candidatures avec détail des offres |
+| `GET` | `/api/offres/{id}/candidatures` | Recruteur (owner) | Candidatures reçues pour son offre |
+| `PATCH` | `/api/candidatures/{id}/statut` | Recruteur (owner) | Changer le statut d'une candidature |
 
 **Exemple postuler :**
 ```json
-POST /api/offres/1/candidater
-{ "message": "Je suis très motivé par ce poste." }
+POST /api/offres/6/candidater
+{ "message": "Je suis intéréssée" }
+```
+**Réponse 201 :**
+```json
+{
+  "offre_id": 6,
+  "profil_id": 4,
+  "message": "Je suis intéréssée",
+  "statut": "en_attente",
+  "id": 3
+}
 ```
 
 **Exemple changer statut :**
 ```json
-PATCH /api/candidatures/1/statut
+PATCH /api/candidatures/3/statut
 { "statut": "acceptee" }
 ```
 > `statut` accepte : `en_attente`, `acceptee`, `refusee`
 
-**Erreurs possibles :**
-```
-422 → offre inactive
-403 → recruteur non propriétaire de l'offre
-```
+**Erreurs couvertes par les tests :**
+
+| Test | Scénario | Code attendu |
+|------|----------|-------------|
+| `error_candidature` | Postuler deux fois à la même offre | `422` — "Vous avez déjà postulé à cette offre." |
+| `error_candidatureid` | Recruteur consultant les candidatures d'une offre qui ne lui appartient pas | `403` — "Action non autorisee" |
+| `error_candidaturestatut` | Recruteur non-propriétaire changeant le statut | `403` — "Action non autorisée" |
 
 ---
 
@@ -346,20 +421,36 @@ PATCH /api/candidatures/1/statut
 
 | Méthode | Endpoint | Description |
 |---------|----------|-------------|
-| `GET` | `/api/admin/users` | Liste complète paginée de tous les utilisateurs |
-| `DELETE` | `/api/admin/users/{id}` | Supprimer un compte (hors son propre compte) |
+| `GET` | `/api/admin/users` | Liste complète paginée de tous les utilisateurs (20/page) |
+| `DELETE` | `/api/admin/users/{id}` | Supprimer un compte utilisateur |
 | `PATCH` | `/api/admin/offres/{id}` | Activer / désactiver une offre (toggle) |
 
-**Réponse toggle offre :**
+**Exemple liste utilisateurs — Réponse 200 :**
 ```json
-{ "message": "Offre désactivée.", "offre": { "id": 1, "actif": false } }
+{
+  "current_page": 1,
+  "data": [
+    { "id": 30, "name": "recruteur", "email": "recruteur@ensam.casa", "role": "recruteur" },
+    { "id": 29, "name": "Chaimae", "email": "chaimae@ensam.casa", "role": "candidat" }
+  ],
+  "total": 30,
+  "last_page": 2
+}
 ```
 
-**Erreurs possibles :**
+**Réponse toggle offre — PATCH /api/admin/offres/6 :**
+```json
+{
+  "message": "Offre désactivée.",
+  "offre": { "id": 6, "actif": false }
+}
 ```
-403 → token non-admin
-403 → tentative de suppression de son propre compte
-```
+
+**Erreurs couvertes par les tests :**
+
+| Test | Scénario | Code attendu |
+|------|----------|-------------|
+| `error_admin` | Token candidat sur route admin | `403` — "Accès refusé. Rôle requis : admin" |
 
 ---
 
@@ -403,8 +494,11 @@ protected $listen = [
 
 **Format du log :**
 ```
-[2025-04-20 14:32:00] Candidature déposée — Candidat: Alice Martin — Offre: Développeur Backend Laravel
+[2026-04-20 22:54:48] Candidature déposée — Candidat: Chaimae — Offre: dev
 ```
+
+**Testé via :** `CandidatureDeposee event` (POST `/api/offres/8/candidater` avec `{ "message": "motivated" }`)  
+La réponse inclut les relations `profil` et `offre` complètes, confirmant le bon dispatch de l'Event.
 
 ### StatutCandidatureMis
 
@@ -417,8 +511,10 @@ protected $listen = [
 
 **Format du log :**
 ```
-[2025-04-20 14:35:00] Statut mis à jour — Ancien: en_attente — Nouveau: acceptee
+[2026-04-20 22:59:06] Statut mis à jour — Ancien: en_attente — Nouveau: acceptee
 ```
+
+**Testé via :** `StatutCandidatureMis event` (PATCH `/api/candidatures/4/statut` avec `{ "statut": "acceptee" }`)
 
 ### Tester les Events manuellement
 
@@ -440,10 +536,14 @@ php artisan tinker
 
 ## Collection Postman
 
-La collection est disponible dans `postman/mini-linkedin.postman_collection.json`.
+La collection complète de tests est disponible dans :
+
+```
+postman/Projet_backend.postman_collection_final
+```
 
 **Import :**
-1. Ouvrir Postman → **Import** → sélectionner le fichier JSON
+1. Ouvrir Postman → **Import** → sélectionner `Projet_backend.postman_collection_final.json`
 2. Créer un environnement avec la variable `token`
 3. Sur le request **Login**, onglet **Scripts → Post-response**, ajouter :
 ```javascript
@@ -452,17 +552,51 @@ if (res.token) pm.environment.set("token", res.token);
 ```
 4. Sur chaque request protégée → Auth → **Bearer Token** → `{{token}}`
 
-**La collection couvre :**
-- Inscription et connexion (candidat, recruteur, admin)
-- CRUD profil et compétences
-- CRUD offres avec filtres et pagination
-- Candidatures et changement de statut
-- Routes admin
-- Cas d'erreur : `401`, `403`, `422`
+### Récapitulatif des tests couverts
+
+| Catégorie | Test | Méthode | Endpoint | Résultat attendu |
+|-----------|------|---------|----------|-----------------|
+| Auth | `register` | POST | `/api/register` | `201` — token + user |
+| Auth | `register_recruiter` | POST | `/api/register` | `201` — role recruteur |
+| Auth | `error_register` | POST | `/api/register` | `422` — champs manquants |
+| Auth | `register_admin` | POST | `/api/register` | `422` — rôle admin invalide |
+| Auth | `login_candidat` | POST | `/api/login` | `200` — token + user |
+| Auth | `error_login_candidat` | POST | `/api/login` | `401` — mauvais mot de passe |
+| Auth | `me` | GET | `/api/me` | `200` — profil utilisateur |
+| Profil | `profil_candidat` (POST) | POST | `/api/profil` | `201` — profil créé |
+| Profil | `profil_candidat` (GET) | GET | `/api/profil` | `200` — profil + compétences |
+| Profil | `profil_candidat` (PUT) | PUT | `/api/profil` | `200` — profil modifié |
+| Profil | `error_profil_candidat` | POST | `/api/profil` | `403` — rôle candidat requis |
+| Profil | `competences_profil` | POST | `/api/profil/competences` | `200` — compétence ajoutée |
+| Profil | `error_profil_competences` | POST | `/api/profil/competences` | `422` — niveau invalide |
+| Profil | `remove_competence` | DELETE | `/api/profil/competences/1` | `200` — compétence retirée |
+| Profil | `error_competences` | DELETE | `/api/profil/competences/99` | `404` — compétence absente |
+| Offres | `offres` | GET | `/api/offres` | `200` — liste paginée |
+| Offres | `offre_id` | GET | `/api/offres/2` | `200` — détail offre |
+| Offres | `offres_post` | POST | `/api/offres` | `201` — offre créée |
+| Offres | `error_offres` | POST | `/api/offres` | `403` — rôle recruteur requis |
+| Offres | `invalid_offre` | POST | `/api/offres` | `401` — token invalide/expiré |
+| Offres | `offres_put` | PUT | `/api/offres/5` | `200` — offre modifiée |
+| Offres | `error_offresput` | PUT | `/api/offres/4` | `403` — non propriétaire |
+| Offres | `delete_offres` | DELETE | `/api/offres/5` | `200` — offre supprimée |
+| Offres | `error_delete_offres` | DELETE | `/api/offres/4` | `403` — non propriétaire |
+| Candidatures | `candidater_offres` | POST | `/api/offres/6/candidater` | `201` — candidature créée |
+| Candidatures | `error_candidature` | POST | `/api/offres/6/candidater` | `422` — déjà postulé |
+| Candidatures | `mes_candidatures` | GET | `/api/mes-candidatures` | `200` — liste + détail offres |
+| Candidatures | `candidatures_id` | GET | `/api/offres/6/candidatures` | `200` — candidatures reçues |
+| Candidatures | `error_candidatureid` | GET | `/api/offres/4/candidatures` | `403` — non propriétaire |
+| Candidatures | `offres_statut` | PATCH | `/api/candidatures/3/statut` | `200` — statut mis à jour |
+| Candidatures | `error_candidaturestatut` | PATCH | `/api/candidatures/3/statut` | `403` — non autorisé |
+| Admin | `admin` | GET | `/api/admin/users` | `200` — tous les utilisateurs |
+| Admin | `error_admin` | GET | `/api/admin/users` | `403` — rôle admin requis |
+| Admin | `delete_user` | DELETE | `/api/admin/users/1` | `200` — utilisateur supprimé |
+| Admin | `patch_admin` | PATCH | `/api/admin/offres/6` | `200` — offre désactivée |
+| Events | `CandidatureDeposee event` | POST | `/api/offres/8/candidater` | `201` — event dispatché, log écrit |
+| Events | `StatutCandidatureMis event` | PATCH | `/api/candidatures/4/statut` | `200` — event dispatché, log écrit |
+
+> Pour visualiser l'ensemble des requêtes, des corps de réponse et des cas d'erreur, consultez directement le fichier `postman/Projet_backend.postman_collection_final.json`.
 
 ---
-
-
 
 <div align="center">
 
